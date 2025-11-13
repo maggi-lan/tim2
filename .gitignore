@@ -1,0 +1,15 @@
+# Object Files
+*.o
+
+# Executables
+*.out
+*.exe
+tim2
+
+# Editor Junk
+*.swp
+*.~
+.vscode/
+
+# Test Files
+*.txt
