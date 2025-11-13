@@ -109,6 +109,9 @@ void print_tree_rec(RopeNode *node, int depth, char branch);
 // Get character at given index in rope
 char char_at(RopeNode *root, int idx);
 
+// Find position of nth newline in tree (internal use)
+int find_newline_pos(RopeNode *root, int newline_idx, int offset);
+
 // Get starting position (character index) of a line
 int get_line_start(RopeNode *root, int line);
 

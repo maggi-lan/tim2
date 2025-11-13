@@ -751,50 +751,94 @@ char char_at(RopeNode *root, int idx) {
 }
 
 
-// Returns the index of the start of a line
-int get_line_start(RopeNode *root, int line) {
-	// Edge cases
-    if (root == NULL || line < 0)
-        return 0;
-    if (root->total_len == 0)
-        return 0;
+// Find position of nth newline in subtree recursively
+// Returns character position of the nth newline (0-indexed)
+// Returns -1 if newline doesn't exist
+int find_newline_pos(RopeNode *root, int newline_idx, int offset) {
+    if (root == NULL)
+        return -1;
 
-    int pos = 0;
-    int current_line = 0;
-
-	// Iteratively find the start of the line
-    while (pos < root->total_len && current_line < line) {
-        if (char_at(root, pos) == '\n')
-            current_line++;
-        pos++;
+    if (is_leaf(root)) {
+        // Search through leaf for the newline
+        int count = 0;
+        for (int i = 0; root->str[i] != '\0'; i++) {
+            if (root->str[i] == '\n') {
+                if (count == newline_idx)
+                    return offset + i;
+                count++;
+            }
+        }
+        return -1;
     }
 
-	// Return the index
-    return pos;
+    // Check left subtree
+    int left_newlines = root->left ? root->left->newlines : 0;
+
+    if (newline_idx < left_newlines) {
+        // Target newline is in left subtree
+        return find_newline_pos(root->left, newline_idx, offset);
+    }
+	else {
+        // Target newline is in right subtree
+        return find_newline_pos(root->right, newline_idx - left_newlines, offset + root->weight);
+    }
 }
 
 
-// Returns the length of a line
-int get_line_length(RopeNode *root, int line) {
-	// Edge cases
-    if (root == NULL)
+// Get starting position (character index) of a line - O(log n)
+// Uses newlines metadata to navigate tree efficiently
+int get_line_start(RopeNode *root, int line) {
+    if (root == NULL || line < 0)
         return 0;
+
     if (root->total_len == 0)
         return 0;
 
-    int start = get_line_start(root, line);
-    int len = 0;
+    // Line 0 starts at position 0
+    if (line == 0)
+        return 0;
 
-	// Iteratively calculate the length
-    while (start + len < root->total_len) {
-        char c = char_at(root, start + len);
-        if (c == '\n')
-            break;
-        len++;
+    // Line N starts at position after (N-1)th newline
+    int newline_pos = find_newline_pos(root, line - 1, 0);
+
+    if (newline_pos == -1)
+        return root->total_len;  // Line doesn't exist, return end
+
+    return newline_pos + 1;  // Position after the newline
+}
+
+
+// Get length of a specific line (excluding newline) - O(log n)
+// Finds start and end of line using tree structure
+int get_line_length(RopeNode *root, int line) {
+    if (root == NULL)
+        return 0;
+
+    if (root->total_len == 0)
+        return 0;
+
+    // Find start of this line
+    int start = get_line_start(root, line);
+
+    if (start >= root->total_len)
+        return 0;
+
+    // Find start of next line (or end of file)
+    int end;
+    if (line >= root->newlines) {
+        // This is the last line
+        end = root->total_len;
+    }
+	else {
+        // Find position of newline at end of this line
+        int newline_pos = find_newline_pos(root, line, 0);
+        if (newline_pos == -1)
+            end = root->total_len;
+        else
+            end = newline_pos;
     }
 
-	// Return the length
-    return len;
+    return end - start;
 }
 
 
