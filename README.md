@@ -2,7 +2,7 @@
 
 A modal text editor built in C using a rope data structure. Inspired by Vim, this editor provides three distinct modes for text editing with immediate visual feedback.
 
-![Demo](demo.gif)
+![Demo](static/demo.gif)
 
 ## Features
 
@@ -144,3 +144,4 @@ Potential improvements:
 - Undo/redo stack
 - Command mode with search and replace
 - Visual selection mode
+
